@@ -1,13 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-const randomSigners = (amount) => {
-  const signers = []
-  for (let i = 0; i < amount; i++) {
-    signers.push(ethers.Wallet.createRandom())
-  }
-  return signers
-}
+let token_per_decimal = '000000000000000000';
 
 describe("CUHK", function () {
 
@@ -48,35 +42,30 @@ describe("CUHK", function () {
     console.log("The contract balance is " + bal);
     const expected = "1000000000000000";
     expect(bal).to.equal(expected);
-  })
+  });
+  
 
-
-  /*
-  it ('Check Owner Balance', async function () {
-    const contract = await ethers.getContractFactory("RK");
-    const rk_token = await contract.deploy(1000);
-    await rk_token.deployed();
-
-    const bal = await rk_token.getOwnerBalance();
-    expect(bal).to.equal(1000);
-
+  it ('Transfer some tokens', async () => {
+    const [s1, s2] = await ethers.getSigners();
+    console.log(s1.address);
+    const contractFactory = await ethers.getContractFactory("CUHK");
+    const contract = await contractFactory.connect(s2).deploy(10);
+    await contract.deployed();
+    const token = contract;
+    let res = await token.owner();
+    console.log(res);
+    let val = 10*0.0001;
+    const options = {
+      value: ethers.utils.parseEther(val.toString()),
+    }
+    await token.buyTokens(10, options);
+    await token.transferTokens(5, s1.address);
+    
+    console.log(await token.balanceOf(s2.address));
+    console.log(await token.balanceOf(s1.address));
+    expect(await token.balanceOf(s2.address)).to.equal('15' + token_per_decimal);
+    expect(await token.balanceOf(s1.address)).to.equal('5' + token_per_decimal);
+    
   });
 
-  it ('Register crowd sale and redeem', async () => {
-    const contract = await ethers.getContractFactory("RK");
-    const rk_token = await contract.deploy(1000);
-    await rk_token.deployed();
-
-    const [eo, addr1, addr2] = await ethers.getSigners();
-
-    const owner = await rk_token.getOwner();
-
-    await expect(rk_token.crowdSale(addr1.address)).to.emit(rk_token, 'Approval')
-    .withArgs(owner, addr1.address, 100);
-
-    await expect(rk_token.connect(addr1).redeemCrowdSale()).to.emit(rk_token, 'Transfer') 
-    .withArgs(owner, addr1.address, 100);
-
-  })
-  */
 });

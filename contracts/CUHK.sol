@@ -19,12 +19,19 @@ contract CUHK is ERC20("CUHK Token", "CUT") {
         num_users += 1;
     }
 
-    function buyTokens(uint256 amt) external payable {
-        uint256 total_num = amt * token_per_decimal;
+    function buyTokens(uint256 _amt) external payable {
+        uint256 total_num = _amt * token_per_decimal;
         require(totalSupply() + total_num <= MAX_SUPPLY, 'Max Supply reached!!');
-        uint256 total_value = amt * price_per_token;
+        uint256 total_value = _amt * price_per_token;
         require(msg.value >= total_value, 'Insufficient price paid for the tokens!!');
         _mint(msg.sender, total_num);
+    }
+
+    function transferTokens(uint256 _amt, address _addr) external returns (bool) {
+        uint256 total_num = _amt * token_per_decimal;
+        require(total_num <= balanceOf(msg.sender), 'Insufficient No. Of Tokens!!');
+        bool res = transfer(_addr, total_num);
+        return res;
     }
 
     function balance() public view returns (uint256) {
